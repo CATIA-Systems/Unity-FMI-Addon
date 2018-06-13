@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 230ae089dd87dc0478b8764182759ebb, type: 3}
+  m_Name: bouncingBall
+  m_EditorClassIdentifier: 
+  fmiVersion: 2.0
+  guid: 7b00380063003400650038003100300066002d0033006400660033002d0034006100300030002d0038003200370036002d003100370036006600610033006300390066003000300033007d00
+  modelName: bouncingBall
+  coSimulation:
+    modelIdentifier: bouncingBall
+  modelVariables:
+  - name: h
+    valueReference: 0
+    description: height, used as state
+    causality: local
+    variability: continuous
+    initial: exact
+    type: 0
+  - name: der(h)
+    valueReference: 1
+    description: velocity of ball
+    causality: local
+    variability: continuous
+    initial: calculated
+    type: 0
+  - name: v
+    valueReference: 2
+    description: velocity of ball, used as state
+    causality: local
+    variability: continuous
+    initial: exact
+    type: 0
+  - name: der(v)
+    valueReference: 3
+    description: acceleration of ball
+    causality: local
+    variability: continuous
+    initial: calculated
+    type: 0
+  - name: g
+    valueReference: 4
+    description: acceleration of gravity
+    causality: parameter
+    variability: fixed
+    initial: exact
+    type: 0
+  - name: e
+    valueReference: 5
+    description: dimensionless parameter
+    causality: parameter
+    variability: tunable
+    initial: exact
+    type: 0
