@@ -11,7 +11,8 @@ namespace FMI2 {
 	using fmi2String = System.String;
 	using fmi2ComponentEnvironment = System.IntPtr;
 	using fmi2Status = System.Int32;
-	using fmi2Real = System.Double;
+    using fmi2Real = System.Double;
+    using fmi2Integer = System.Int32;
 	using fmi2Boolean = System.Int32;
 	using fmi2Component = System.IntPtr;
 	using fmi2ValueReference = System.UInt32;
@@ -46,8 +47,8 @@ namespace FMI2 {
 		string fmuGUID,
 		string fmuResourceLocation,
 		IntPtr callbacks,
-		bool visible,
-		bool loggingOn);
+        fmi2Boolean visible,
+        fmi2Boolean loggingOn);
 
 	// typedef void          fmi2FreeInstanceTYPE(fmi2Component);
 	delegate void fmi2FreeInstanceDelegate(fmi2Component c);
@@ -95,6 +96,18 @@ namespace FMI2 {
 	// typedef fmi2Status fmi2SetRealTYPE   (fmi2Component, const fmi2ValueReference[], size_t, const fmi2Real   []);
 	delegate fmi2Status fmi2SetRealDelegate(fmi2Component c, fmi2ValueReference[] vr, size_t nvr, fmi2Real[] value);
 
+    delegate fmi2Status fmi2GetIntegerDelegate(fmi2Component c, fmi2ValueReference[] vr, size_t nvr, fmi2Integer[] value);
+
+    delegate fmi2Status fmi2SetIntegerDelegate(fmi2Component c, fmi2ValueReference[] vr, size_t nvr, fmi2Integer[] value);
+
+    delegate fmi2Status fmi2GetBooleanDelegate(fmi2Component c, fmi2ValueReference[] vr, size_t nvr, fmi2Boolean[] value);
+
+    delegate fmi2Status fmi2SetBooleanDelegate(fmi2Component c, fmi2ValueReference[] vr, size_t nvr, fmi2Boolean[] value);
+
+    delegate fmi2Status fmi2GetStringDelegate(fmi2Component c, fmi2ValueReference[] vr, size_t nvr, IntPtr[] value);
+
+    delegate fmi2Status fmi2SetStringDelegate(fmi2Component c, fmi2ValueReference[] vr, size_t nvr, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr)] fmi2String[] value);
+
 	//  typedef struct {
 	//      const fmi2CallbackLogger         logger;
 	//      const fmi2CallbackAllocateMemory allocateMemory;
@@ -133,14 +146,20 @@ namespace FMI2 {
 		fmi2ExitInitializationModeDelegate fmi2ExitInitializationMode;
 		fmi2TerminateDelegate fmi2Terminate;
 		fmi2ResetDelegate fmi2Reset;
-		fmi2DoStepDelegate fmi2DoStep;
-		fmi2GetRealDelegate fmi2GetReal;
-		fmi2SetRealDelegate fmi2SetReal;
+        fmi2DoStepDelegate fmi2DoStep;
+        fmi2GetRealDelegate fmi2GetReal;
+        fmi2SetRealDelegate fmi2SetReal;
+        fmi2GetIntegerDelegate fmi2GetInteger;
+        fmi2SetIntegerDelegate fmi2SetInteger;
+        fmi2GetBooleanDelegate fmi2GetBoolean;
+        fmi2SetBooleanDelegate fmi2SetBoolean;
+        fmi2GetStringDelegate fmi2GetString;
+        fmi2SetStringDelegate fmi2SetString;
 
         private Dictionary<string, uint> valueReferences;
 
 
-        public FMU(string fmuName, string instanceName, bool logginOn=false)
+        public FMU(string fmuName, string instanceName, bool loggingOn=false)
         {
             var modelDescription = Resources.Load<ModelDescription>(fmuName);
 
@@ -178,7 +197,8 @@ namespace FMI2 {
 			functions.componentEnvironment = IntPtr.Zero;
 
 			this.callbacks = Marshal.AllocHGlobal(Marshal.SizeOf(functions));
-			// Copy the struct to unmanaged memory.
+			
+            // Copy the struct to unmanaged memory.
 			Marshal.StructureToPtr(functions, this.callbacks, false);
 
 			fmi2Instantiate = getFunc<fmi2InstantiateDelegate>(dll, "fmi2Instantiate");
@@ -188,14 +208,24 @@ namespace FMI2 {
 			fmi2ExitInitializationMode = getFunc<fmi2ExitInitializationModeDelegate>(dll, "fmi2ExitInitializationMode");
 			fmi2Terminate = getFunc<fmi2TerminateDelegate>(dll, "fmi2Terminate");
 			fmi2Reset = getFunc<fmi2ResetDelegate>(dll, "fmi2Reset");
-			fmi2DoStep = getFunc<fmi2DoStepDelegate>(dll, "fmi2DoStep");
-			fmi2GetReal = getFunc<fmi2GetRealDelegate>(dll, "fmi2GetReal");
-			fmi2SetReal = getFunc<fmi2SetRealDelegate>(dll, "fmi2SetReal");
+            fmi2DoStep = getFunc<fmi2DoStepDelegate>(dll, "fmi2DoStep");
+            fmi2GetReal = getFunc<fmi2GetRealDelegate>(dll, "fmi2GetReal");
+            fmi2SetReal = getFunc<fmi2SetRealDelegate>(dll, "fmi2SetReal");
+            fmi2GetInteger = getFunc<fmi2GetIntegerDelegate>(dll, "fmi2GetInteger");
+            fmi2SetInteger = getFunc<fmi2SetIntegerDelegate>(dll, "fmi2SetInteger");
+            fmi2GetBoolean = getFunc<fmi2GetBooleanDelegate>(dll, "fmi2GetBoolean");
+            fmi2SetBoolean = getFunc<fmi2SetBooleanDelegate>(dll, "fmi2SetBoolean");
+            fmi2GetString = getFunc<fmi2GetStringDelegate>(dll, "fmi2GetString");
+            fmi2SetString = getFunc<fmi2SetStringDelegate>(dll, "fmi2SetString");
 
             var resourceLocation = new Uri(unzipdir).AbsoluteUri;
 
-            component = fmi2Instantiate(instanceName, (int)fmi2Type.fmi2CoSimulation, guid, resourceLocation, callbacks, false, logginOn);
+            component = fmi2Instantiate(instanceName, (int)fmi2Type.fmi2CoSimulation, guid, resourceLocation, callbacks, fmi2False, loggingOn ? fmi2True : fmi2False);
 		}
+
+        public uint GetValueReference(string variable) {
+            return valueReferences[variable];
+        }
 
 		public void Dispose() {
 			Marshal.FreeHGlobal(callbacks);
@@ -249,7 +279,7 @@ namespace FMI2 {
 		public double GetReal(uint vr)
 		{
 			fmi2ValueReference[] vrs = { vr };
-			double[] value = { 0.0 };
+            fmi2Real[] value = { 0.0 };
 			var status = fmi2GetReal(component, vrs, 1, value);
 			return value[0];
 		}
@@ -263,7 +293,7 @@ namespace FMI2 {
         public void SetReal(uint vr, double value)
 		{
 			fmi2ValueReference[] vrs = { vr };
-			double[] value_ = { value };
+            fmi2Real[] value_ = { value };
 			var status = fmi2SetReal(component, vrs, 1, value_);
 		}
 
@@ -273,10 +303,103 @@ namespace FMI2 {
             SetReal(vr, value);
         }
 
+        public int GetInteger(uint vr)
+        {
+            fmi2ValueReference[] vrs = { vr };
+            int[] value = { 0 };
+            var status = fmi2GetInteger(component, vrs, 1, value);
+            return value[0];
+        }
+
+        public int GetInteger(string name)
+        {
+            var vr = valueReferences[name];
+            return GetInteger(vr);
+        }
+
+        public void SetInteger(uint vr, int value)
+        {
+            fmi2ValueReference[] vrs = { vr };
+            fmi2Integer[] value_ = { value };
+            var status = fmi2SetInteger(component, vrs, 1, value_);
+        }
+
+        public void SetInteger(string name, int value)
+        {
+            var vr = valueReferences[name];
+            SetInteger(vr, value);
+        }
+
+        public bool GetBoolean(uint vr)
+        {
+            fmi2ValueReference[] vrs = { vr };
+            fmi2Boolean[] value = { fmi2False };
+            var status = fmi2GetBoolean(component, vrs, 1, value);
+            return value[0] != fmi2False;
+        }
+
+        public bool GetBoolean(string name)
+        {
+            var vr = valueReferences[name];
+            return GetBoolean(vr);
+        }
+
+        public void SetBoolean(uint vr, bool value)
+        {
+            fmi2ValueReference[] vrs = { vr };
+            fmi2Boolean[] value_ = { value ? fmi2True : fmi2False };
+            var status = fmi2SetBoolean(component, vrs, 1, value_);
+        }
+
+        public void SetBoolean(string name, bool value)
+        {
+            var vr = valueReferences[name];
+            SetBoolean(vr, value);
+        }
+
+        public string GetString(uint vr)
+        {
+            fmi2ValueReference[] vrs = { vr };
+            IntPtr[] value = { IntPtr.Zero };
+            var status = fmi2GetString(component, vrs, 1, value);
+            var str = Marshal.PtrToStringAnsi(value[0]);
+            return str;
+        }
+
+        public string GetString(string name)
+        {
+            var vr = valueReferences[name];
+            return GetString(vr);
+        }
+
+        public void SetString(uint vr, string value)
+        {
+            fmi2ValueReference[] vrs = { vr };
+            fmi2String[] value_ = { value };
+            var status = fmi2SetString(component, vrs, 1, value_);
+        }
+
+        public void SetString(string name, string value)
+        {
+            var vr = valueReferences[name];
+            SetString(vr, value);
+        }
+
 		static IntPtr allocateMemory(size_t nobj, size_t size)
 		{
 			//Debug.Log("allocateMemory(" + nobj + ", " + size + ")");
-            return Marshal.AllocHGlobal((int)(nobj * size));
+
+            var nbytes = (int)(nobj * size);
+
+            // allocate the memory
+            var mem = Marshal.AllocHGlobal(nbytes);
+
+            var zero = new byte[nbytes];
+            
+            // set all bytes to 0
+            Marshal.Copy(zero, 0, mem, nbytes);
+
+            return mem;
 		}
 
 #if UNITY_STANDALONE_WIN
