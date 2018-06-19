@@ -8,14 +8,14 @@ Download and import the [Unity package](https://github.com/CATIA-Systems/Unity-F
 This creates the model description in `Resources` that lists the available variables and extracts the FMU to the
 `StreamingAssets` folder.
 
-Now you can use the FMU the in your scripts:
+Now you can use the FMU the in your scripts (see [BouncingBall.cs](Assets/SampleScenes/BouncingBall/BouncingBall.cs) for a complete example):
 
 ```csharp
 public class BouncingBall : MonoBehaviour {
 
-	FMU fmu;
+    FMU fmu;
 
-	void Start () {
+    void Start () {
         fmu = new FMU2("bouncingBall");
         fmu.SetupExperiment(Time.time);
         fmu.EnterInitializationMode();
@@ -33,6 +33,8 @@ public class BouncingBall : MonoBehaviour {
 The example scene `SampleScenes/BouncingBall` shows you how to instantiate and reset the model, set input and get output.
 
 ![BouncingBall Scene](BouncingBall-Scene.png)
+
+[Values.cs](Assets/SampleScenes/Values/Values.cs) demonstrates how to get and set `Real`, `Integer`, `Boolean` and `String` variables.
 
 
 ## Limitations
