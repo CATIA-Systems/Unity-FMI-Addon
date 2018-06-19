@@ -34,7 +34,7 @@ The example scene `SampleScenes/BouncingBall` shows you how to instantiate and r
 
 ![BouncingBall Scene](BouncingBall-Scene.png)
 
-[Values.cs](Assets/SampleScenes/Values/Values.cs) demonstrates how to get and set `Real`, `Integer`, `Boolean` and `String` variables.
+[Values.cs](Assets/SampleScenes/Values/Values.cs) demonstrates how to use value references and to get and set `Real`, `Integer`, `Boolean` and `String` variables.
 
 
 ## Limitations
