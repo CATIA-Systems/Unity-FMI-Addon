@@ -38,7 +38,7 @@ under the [FMI Logo License](https://svn.fmi-standard.org/fmi/branches/public/FM
 
 - **Materials and Textures** from freely available [Standard Assets](https://assetstore.unity.com/packages/essentials/asset-packs/standard-assets-32351)
 
-- **BoucingBall.fmu** test FMU from the [FMU SDK](https://www.qtronic.de/en/fmusdk.html) available on
+- **BoucingBall.fmu** and **values.fmu** test FMUs from the [FMU SDK](https://www.qtronic.de/en/fmusdk.html) available on
 the [FMI Standard website](https://trac.fmi-standard.org/browser/branches/public/Test_FMUs) under the
 [BSD license](http://www.opensource.org/licenses/bsd-license.html)
 
