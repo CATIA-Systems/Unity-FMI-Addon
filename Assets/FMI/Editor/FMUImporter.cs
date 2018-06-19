@@ -17,6 +17,8 @@ public static class FMUImporter
 
         string fmuPath = EditorUtility.OpenFilePanelWithFilters("Import FMU", "", filters);
 
+        if (string.IsNullOrEmpty(fmuPath)) return;
+
         var fmuName = Path.GetFileNameWithoutExtension(fmuPath);
 
         var unzipdir = Path.Combine(Application.streamingAssetsPath, fmuName);
@@ -60,21 +62,25 @@ public static class FMUImporter
             foreach (var el in e.Elements("Real"))
             {
                 v.type = VariableType.Real;
+                v.start = (string)el.Attribute("start");
             }
 
             foreach (var el in e.Elements("Integer"))
             {
                 v.type = VariableType.Integer;
+                v.start = (string)el.Attribute("start");
             }
 
             foreach (var el in e.Elements("Boolean"))
             {
                 v.type = VariableType.Boolean;
+                v.start = (string)el.Attribute("start");
             }
 
             foreach (var el in e.Elements("String"))
             {
                 v.type = VariableType.String;
+                v.start = (string)el.Attribute("start");
             }
 
         }

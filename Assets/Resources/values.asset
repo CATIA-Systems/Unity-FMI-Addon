@@ -24,6 +24,7 @@ MonoBehaviour:
     variability: continuous
     initial: exact
     type: 0
+    start: 1
   - name: der(x)
     valueReference: 1
     description: time derivative of x
@@ -31,6 +32,7 @@ MonoBehaviour:
     variability: continuous
     initial: calculated
     type: 0
+    start: 
   - name: int_in
     valueReference: 0
     description: integer input
@@ -38,6 +40,7 @@ MonoBehaviour:
     variability: discrete
     initial: 
     type: 1
+    start: 2
   - name: int_out
     valueReference: 1
     description: index in string array 'month'
@@ -45,6 +48,7 @@ MonoBehaviour:
     variability: discrete
     initial: exact
     type: 1
+    start: 0
   - name: bool_in
     valueReference: 0
     description: boolean input
@@ -52,6 +56,7 @@ MonoBehaviour:
     variability: discrete
     initial: 
     type: 3
+    start: true
   - name: bool_out
     valueReference: 1
     description: boolean output
@@ -59,6 +64,7 @@ MonoBehaviour:
     variability: discrete
     initial: exact
     type: 3
+    start: false
   - name: string_in
     valueReference: 0
     description: string input
@@ -66,6 +72,7 @@ MonoBehaviour:
     variability: discrete
     initial: 
     type: 4
+    start: QTronic
   - name: string_out
     valueReference: 1
     description: the string month[int_out]
@@ -73,3 +80,4 @@ MonoBehaviour:
     variability: discrete
     initial: exact
     type: 4
+    start: jan

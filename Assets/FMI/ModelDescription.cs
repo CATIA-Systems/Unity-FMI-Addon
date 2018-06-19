@@ -49,4 +49,6 @@ public class ScalarVariable {
 
     public VariableType type;
 
+    public string start;
+
 }
