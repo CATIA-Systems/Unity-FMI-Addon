@@ -175,7 +175,7 @@ namespace FMI2 {
 
             var modelIdentifier = modelDescription.coSimulation.modelIdentifier;
 
-            var guid = new string(modelDescription.guid);
+            var guid = modelDescription.instantiationToken;
 
             var dllPath = unzipdir + "/binaries/";
 

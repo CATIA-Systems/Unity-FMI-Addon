@@ -8,8 +8,7 @@ public class ModelDescription : ScriptableObject
 
     public string fmiVersion;
 
-    // store the GUID as a char array to work around serialization bug in Unity (curly braces)
-    public char[] guid;
+    public string instantiationToken;
 
     public string modelName;
 
@@ -29,6 +28,10 @@ public class Implementation
 
 public enum VariableType
 {
+    Float32,
+    Float64,
+    Int32,
+    UInt32,
     Real, Integer, Enumeration, Boolean, String
 }
 
