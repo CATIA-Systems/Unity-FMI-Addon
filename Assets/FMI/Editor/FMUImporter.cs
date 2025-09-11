@@ -115,7 +115,7 @@ public static class FMUImporter
                 variability = (string)e.Attribute("variability"),
                 initial = (string)e.Attribute("initial"),
                 valueReference = (uint)e.Attribute("valueReference"),
-                type = (VariableType)Enum.Parse(typeof(VariableType), e.Name.ToString(), true),
+                type = (VariableType)Enum.Parse(typeof(VariableType), typeElement.Name.ToString(), true),
                 start = (string)typeElement.Attribute("start")
             };
 

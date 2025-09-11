@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System;
 using UnityEngine;
+using NUnit.Framework;
 
-
+#pragma warning disable IDE1006 // Naming Styles
 namespace FMI2 {
 
 	using size_t = System.UInt64;
 	using fmi2String = System.String;
 	using fmi2ComponentEnvironment = System.IntPtr;
-	using fmi2Status = System.Int32;
+	// using fmi2Status = System.Int32;
     using fmi2Real = System.Double;
     using fmi2Integer = System.Int32;
 	using fmi2Boolean = System.Int32;
@@ -21,6 +22,16 @@ namespace FMI2 {
 	{
 		fmi2ModelExchange,
 		fmi2CoSimulation
+	};
+
+    public enum fmi2Status
+    {
+	   	fmi2OK,
+		fmi2Warning,
+		fmi2Discard,
+		fmi2Error,
+		fmi2Fatal,
+		fmi2Pending
 	};
 
 	//typedef void      (*fmi2CallbackLogger)        (fmi2ComponentEnvironment, fmi2String, fmi2Status, fmi2String, fmi2String, ...);
@@ -125,39 +136,33 @@ namespace FMI2 {
 		public fmi2ComponentEnvironment componentEnvironment;
 	}
 
-	public class FMU : IDisposable
+	public class FMU : FMI.FMU, IDisposable
 	{
-        
-#if UNITY_STANDALONE_OSX
-        const int RTLD_NOW = 2;
-#endif
-
         const int fmi2True = 1;
 		const int fmi2False = 0;
 
-		IntPtr dll;
-        fmi2Component component;
-		IntPtr callbacks;
+		// IntPtr dll;
+        private fmi2Component component;
+		private IntPtr callbacks;
 
-		fmi2InstantiateDelegate fmi2Instantiate;
-		fmi2FreeInstanceDelegate fmi2FreeInstance;
-		fmi2SetupExperimentDelegate fmi2SetupExperiment;
-		fmi2EnterInitializationModeDelegate fmi2EnterInitializationMode;
-		fmi2ExitInitializationModeDelegate fmi2ExitInitializationMode;
-		fmi2TerminateDelegate fmi2Terminate;
-		fmi2ResetDelegate fmi2Reset;
-        fmi2DoStepDelegate fmi2DoStep;
-        fmi2GetRealDelegate fmi2GetReal;
-        fmi2SetRealDelegate fmi2SetReal;
-        fmi2GetIntegerDelegate fmi2GetInteger;
-        fmi2SetIntegerDelegate fmi2SetInteger;
-        fmi2GetBooleanDelegate fmi2GetBoolean;
-        fmi2SetBooleanDelegate fmi2SetBoolean;
-        fmi2GetStringDelegate fmi2GetString;
-        fmi2SetStringDelegate fmi2SetString;
+		readonly fmi2InstantiateDelegate fmi2Instantiate;
+		readonly fmi2FreeInstanceDelegate fmi2FreeInstance;
+		readonly fmi2SetupExperimentDelegate fmi2SetupExperiment;
+		readonly fmi2EnterInitializationModeDelegate fmi2EnterInitializationMode;
+		readonly fmi2ExitInitializationModeDelegate fmi2ExitInitializationMode;
+		readonly fmi2TerminateDelegate fmi2Terminate;
+		readonly fmi2ResetDelegate fmi2Reset;
+        readonly fmi2DoStepDelegate fmi2DoStep;
+        readonly fmi2GetRealDelegate fmi2GetReal;
+        readonly fmi2SetRealDelegate fmi2SetReal;
+        readonly fmi2GetIntegerDelegate fmi2GetInteger;
+        readonly fmi2SetIntegerDelegate fmi2SetInteger;
+        readonly fmi2GetBooleanDelegate fmi2GetBoolean;
+        readonly fmi2SetBooleanDelegate fmi2SetBoolean;
+        readonly fmi2GetStringDelegate fmi2GetString;
+        readonly fmi2SetStringDelegate fmi2SetString;
 
         private Dictionary<string, uint> valueReferences;
-
 
         public FMU(string fmuName, string instanceName, bool loggingOn=false)
         {
@@ -201,86 +206,107 @@ namespace FMI2 {
             // Copy the struct to unmanaged memory.
 			Marshal.StructureToPtr(functions, this.callbacks, false);
 
-			fmi2Instantiate = getFunc<fmi2InstantiateDelegate>(dll, "fmi2Instantiate");
-			fmi2FreeInstance = getFunc<fmi2FreeInstanceDelegate>(dll, "fmi2FreeInstance");
-			fmi2SetupExperiment = getFunc<fmi2SetupExperimentDelegate>(dll, "fmi2SetupExperiment");
-			fmi2EnterInitializationMode = getFunc<fmi2EnterInitializationModeDelegate>(dll, "fmi2EnterInitializationMode");
-			fmi2ExitInitializationMode = getFunc<fmi2ExitInitializationModeDelegate>(dll, "fmi2ExitInitializationMode");
-			fmi2Terminate = getFunc<fmi2TerminateDelegate>(dll, "fmi2Terminate");
-			fmi2Reset = getFunc<fmi2ResetDelegate>(dll, "fmi2Reset");
-            fmi2DoStep = getFunc<fmi2DoStepDelegate>(dll, "fmi2DoStep");
-            fmi2GetReal = getFunc<fmi2GetRealDelegate>(dll, "fmi2GetReal");
-            fmi2SetReal = getFunc<fmi2SetRealDelegate>(dll, "fmi2SetReal");
-            fmi2GetInteger = getFunc<fmi2GetIntegerDelegate>(dll, "fmi2GetInteger");
-            fmi2SetInteger = getFunc<fmi2SetIntegerDelegate>(dll, "fmi2SetInteger");
-            fmi2GetBoolean = getFunc<fmi2GetBooleanDelegate>(dll, "fmi2GetBoolean");
-            fmi2SetBoolean = getFunc<fmi2SetBooleanDelegate>(dll, "fmi2SetBoolean");
-            fmi2GetString = getFunc<fmi2GetStringDelegate>(dll, "fmi2GetString");
-            fmi2SetString = getFunc<fmi2SetStringDelegate>(dll, "fmi2SetString");
+			fmi2Instantiate = getFunc<fmi2InstantiateDelegate>("fmi2Instantiate");
+			fmi2FreeInstance = getFunc<fmi2FreeInstanceDelegate>("fmi2FreeInstance");
+			fmi2SetupExperiment = getFunc<fmi2SetupExperimentDelegate>("fmi2SetupExperiment");
+			fmi2EnterInitializationMode = getFunc<fmi2EnterInitializationModeDelegate>("fmi2EnterInitializationMode");
+			fmi2ExitInitializationMode = getFunc<fmi2ExitInitializationModeDelegate>("fmi2ExitInitializationMode");
+			fmi2Terminate = getFunc<fmi2TerminateDelegate>("fmi2Terminate");
+			fmi2Reset = getFunc<fmi2ResetDelegate>("fmi2Reset");
+            fmi2DoStep = getFunc<fmi2DoStepDelegate>("fmi2DoStep");
+            fmi2GetReal = getFunc<fmi2GetRealDelegate>("fmi2GetReal");
+            fmi2SetReal = getFunc<fmi2SetRealDelegate>("fmi2SetReal");
+            fmi2GetInteger = getFunc<fmi2GetIntegerDelegate>("fmi2GetInteger");
+            fmi2SetInteger = getFunc<fmi2SetIntegerDelegate>("fmi2SetInteger");
+            fmi2GetBoolean = getFunc<fmi2GetBooleanDelegate>("fmi2GetBoolean");
+            fmi2SetBoolean = getFunc<fmi2SetBooleanDelegate>("fmi2SetBoolean");
+            fmi2GetString = getFunc<fmi2GetStringDelegate>("fmi2GetString");
+            fmi2SetString = getFunc<fmi2SetStringDelegate>("fmi2SetString");
 
             var resourceLocation = new Uri(unzipdir).AbsoluteUri;
 
             component = fmi2Instantiate(instanceName, (int)fmi2Type.fmi2CoSimulation, guid, resourceLocation, callbacks, fmi2False, loggingOn ? fmi2True : fmi2False);
 		}
 
-        public uint GetValueReference(string variable) {
-            return valueReferences[variable];
-        }
-
-		public void Dispose() {
+		~FMU()
+		{
+			Debug.Log("~FMU()");
 			Marshal.FreeHGlobal(callbacks);
-
 #if UNITY_STANDALONE_WIN
-            FreeLibrary(dll);
+			FreeLibrary(dll);
 #else
 			dlclose(dll);
 #endif
-        }
+		}
 
-		public void SetupExperiment(double startTime, double? tolerance = null, double? stopTime = null) {
-			var status = fmi2SetupExperiment(component, 
-				tolerance.HasValue ? fmi2True : fmi2False, 
-				tolerance.HasValue ? tolerance.Value : 0.0, 
-				startTime, 
-				stopTime.HasValue ? fmi2True : fmi2False, 
-				stopTime.HasValue ? stopTime.Value : 0.0);
+		public void Dispose()
+		{
+			fmi2FreeInstance(component);
+			component = IntPtr.Zero;
+		}
+
+		public uint GetValueReference(string variable)
+		{
+			return valueReferences[variable];
+		}
+
+		private void AssertStatus()
+		{
+
+		}
+
+		private void Call(fmi2Status status)
+		{
+			if (status != fmi2Status.fmi2OK) {
+				throw new Exception("FMI call failed.");
+			}
+		}
+
+		public void SetupExperiment(double startTime, double? tolerance = null, double? stopTime = null)
+		{
+			Call(fmi2SetupExperiment(component,
+				tolerance.HasValue ? fmi2True : fmi2False,
+				tolerance.HasValue ? tolerance.Value : 0.0,
+				startTime,
+				stopTime.HasValue ? fmi2True : fmi2False,
+				stopTime.HasValue ? stopTime.Value : 0.0));
 		}
 
 		public void EnterInitializationMode() {
-			var status = fmi2EnterInitializationMode(component);
+			Call(fmi2EnterInitializationMode(component));
 		}
 
 		public void ExitInitializationMode() {
-			var status = fmi2ExitInitializationMode(component);
+			Call(fmi2ExitInitializationMode(component));
 		}
 
 		public void Terminate() {
-			var status = fmi2Terminate(component);
+			Call(fmi2Terminate(component));
 		}
 
 		public void Reset() {
-			var status = fmi2Reset(component);
+			Call(fmi2Reset(component));
 		}
 
-		public void FreeInstance() {
-			fmi2FreeInstance(component);
-		}
+		// public void FreeInstance() {
+		// 	fmi2FreeInstance(component);
+		// }
 
 		public void DoStep(double currentCommunicationPoint,
 			double communicationStepSize,
-			bool noSetFMUStatePriorToCurrentPoint = true) {
-
-			var status = fmi2DoStep(component,
+			bool noSetFMUStatePriorToCurrentPoint = true)
+		{
+			Call(fmi2DoStep(component,
 				currentCommunicationPoint,
 				communicationStepSize,
-				noSetFMUStatePriorToCurrentPoint ? fmi2True : fmi2False);
+				noSetFMUStatePriorToCurrentPoint ? fmi2True : fmi2False));
 		}
 
 		public double GetReal(uint vr)
 		{
 			fmi2ValueReference[] vrs = { vr };
             fmi2Real[] value = { 0.0 };
-			var status = fmi2GetReal(component, vrs, 1, value);
+			Call(fmi2GetReal(component, vrs, 1, value));
 			return value[0];
 		}
 
@@ -294,7 +320,7 @@ namespace FMI2 {
 		{
 			fmi2ValueReference[] vrs = { vr };
             fmi2Real[] value_ = { value };
-			var status = fmi2SetReal(component, vrs, 1, value_);
+			Call(fmi2SetReal(component, vrs, 1, value_));
 		}
 
         public void SetReal(string name, double value)
@@ -307,7 +333,7 @@ namespace FMI2 {
         {
             fmi2ValueReference[] vrs = { vr };
             int[] value = { 0 };
-            var status = fmi2GetInteger(component, vrs, 1, value);
+            Call(fmi2GetInteger(component, vrs, 1, value));
             return value[0];
         }
 
@@ -321,7 +347,7 @@ namespace FMI2 {
         {
             fmi2ValueReference[] vrs = { vr };
             fmi2Integer[] value_ = { value };
-            var status = fmi2SetInteger(component, vrs, 1, value_);
+            Call(fmi2SetInteger(component, vrs, 1, value_));
         }
 
         public void SetInteger(string name, int value)
@@ -334,7 +360,7 @@ namespace FMI2 {
         {
             fmi2ValueReference[] vrs = { vr };
             fmi2Boolean[] value = { fmi2False };
-            var status = fmi2GetBoolean(component, vrs, 1, value);
+            Call(fmi2GetBoolean(component, vrs, 1, value));
             return value[0] != fmi2False;
         }
 
@@ -348,7 +374,7 @@ namespace FMI2 {
         {
             fmi2ValueReference[] vrs = { vr };
             fmi2Boolean[] value_ = { value ? fmi2True : fmi2False };
-            var status = fmi2SetBoolean(component, vrs, 1, value_);
+            Call(fmi2SetBoolean(component, vrs, 1, value_));
         }
 
         public void SetBoolean(string name, bool value)
@@ -361,7 +387,7 @@ namespace FMI2 {
         {
             fmi2ValueReference[] vrs = { vr };
             IntPtr[] value = { IntPtr.Zero };
-            var status = fmi2GetString(component, vrs, 1, value);
+            Call(fmi2GetString(component, vrs, 1, value));
             var str = Marshal.PtrToStringAnsi(value[0]);
             return str;
         }
@@ -376,7 +402,7 @@ namespace FMI2 {
         {
             fmi2ValueReference[] vrs = { vr };
             fmi2String[] value_ = { value };
-            var status = fmi2SetString(component, vrs, 1, value_);
+            Call(fmi2SetString(component, vrs, 1, value_));
         }
 
         public void SetString(string name, string value)
@@ -402,26 +428,26 @@ namespace FMI2 {
             return mem;
 		}
 
-#if UNITY_STANDALONE_WIN
-        [DllImport("kernel32", SetLastError = true)]
-        static extern IntPtr LoadLibrary(string lpFileName);
+// #if UNITY_STANDALONE_WIN
+//         [DllImport("kernel32", SetLastError = true)]
+//         static extern IntPtr LoadLibrary(string lpFileName);
 
-        [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+//         [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+//         static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-        [DllImport("kernel32", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool FreeLibrary(IntPtr hModule);
-#else
-        [DllImport("libdl")]
-		protected static extern IntPtr dlopen(string filename, int flags);
+//         [DllImport("kernel32", SetLastError = true)]
+//         [return: MarshalAs(UnmanagedType.Bool)]
+//         static extern bool FreeLibrary(IntPtr hModule);
+// #else
+//         [DllImport("libdl")]
+// 		protected static extern IntPtr dlopen(string filename, int flags);
 
-		[DllImport("libdl")]
-		protected static extern int dlclose(IntPtr handle);
+// 		[DllImport("libdl")]
+// 		protected static extern int dlclose(IntPtr handle);
 
-		[DllImport("libdl")]
-		private static extern IntPtr dlsym(IntPtr handle, String symbol);
-#endif
+// 		[DllImport("libdl")]
+// 		private static extern IntPtr dlsym(IntPtr handle, String symbol);
+// #endif
 
 #if UNITY_STANDALONE_WIN
         [DllImport("msvcrt", CallingConvention=CallingConvention.Cdecl)]
@@ -444,33 +470,47 @@ namespace FMI2 {
 
 		static void logMessage(IntPtr env, IntPtr instanceName, fmi2Status status, IntPtr category, IntPtr message)
 		{
-            Debug.Log(Marshal.PtrToStringAnsi(message) + ": " + Marshal.PtrToStringAnsi(message));
-		}
+			var text = Marshal.PtrToStringAnsi(instanceName) + ": " + Marshal.PtrToStringAnsi(message);
 
-		TDelegate getFunc<TDelegate>(IntPtr dll, string fname) where TDelegate : class
-		{
-
-#if UNITY_STANDALONE_WIN
-            IntPtr p = GetProcAddress(dll, fname);
-#else
-            IntPtr p = dlsym(dll, fname);
-#endif
-
-            if (p == IntPtr.Zero)
+			switch (status)
 			{
-				return null;
+				case fmi2Status.fmi2OK:
+					Debug.Log(text);
+					break;
+				case fmi2Status.fmi2Warning:
+					Debug.LogWarning(text);
+					break;
+				default:
+					Debug.LogError(text);
+					break;
 			}
-
-			Delegate function = Marshal.GetDelegateForFunctionPointer(p, typeof(TDelegate));
-
-			// Ideally, we'd just make the constraint on TDelegate be
-			// System.Delegate, but compiler error CS0702 (constrained can't be System.Delegate)
-			// prevents that. So we make the constraint system.object and do the cast from object-->TDelegate.
-			object o = function;
-
-			return (TDelegate)o;
 		}
+
+// 		TDelegate getFunc<TDelegate>(IntPtr dll, string fname) where TDelegate : class
+// 		{
+
+// #if UNITY_STANDALONE_WIN
+//             IntPtr p = GetProcAddress(dll, fname);
+// #else
+//             IntPtr p = dlsym(dll, fname);
+// #endif
+
+//             if (p == IntPtr.Zero)
+// 			{
+// 				return null;
+// 			}
+
+// 			Delegate function = Marshal.GetDelegateForFunctionPointer(p, typeof(TDelegate));
+
+// 			// Ideally, we'd just make the constraint on TDelegate be
+// 			// System.Delegate, but compiler error CS0702 (constrained can't be System.Delegate)
+// 			// prevents that. So we make the constraint system.object and do the cast from object-->TDelegate.
+// 			object o = function;
+
+// 			return (TDelegate)o;
+// 		}
 
 	}
 
 }
+#pragma warning restore IDE1006 // Naming Styles
