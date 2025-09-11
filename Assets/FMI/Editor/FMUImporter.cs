@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using Ionic.Zip;
 using System.Xml.Linq;
-using System.Xml;
 using System.Xml.Schema;
 using System;
 using System.Xml.XPath;
@@ -23,7 +22,6 @@ public static class FMUImporter
     [MenuItem("Assets/Import FMU...")]
     public static void ImportFMU()
     {
-
         string[] filters = { "FMUs", "fmu", "All files", "*" };
 
         string fmuPath = EditorUtility.OpenFilePanelWithFilters("Import FMU", "", filters);
@@ -38,13 +36,10 @@ public static class FMUImporter
         zip.ExtractExistingFile = ExtractExistingFileAction.OverwriteSilently;
         zip.ExtractAll(unzipdir);
 
-
         XDocument doc = XDocument.Load(unzipdir + "/modelDescription.xml");
         var root = doc.Root;
 
         string fmiVersion = (string)root.Attribute("fmiVersion");
-
-        string xsdPath;
 
         ModelDescription modelDescription;
 
@@ -97,17 +92,22 @@ public static class FMUImporter
         modelDescription.instantiationToken = (string)root.Attribute("guid");
         modelDescription.modelName = (string)root.Attribute("modelName");
 
-        foreach (var e in root.Elements("CoSimulation"))
+        var coSimulation = root.Element("CoSimulation") ?? throw new FMUImportException("The FMU does not support Co-Simulation.");
+
+        modelDescription.coSimulation = new()
         {
-            modelDescription.coSimulation = new Implementation();
-            modelDescription.coSimulation.modelIdentifier = (string)e.Attribute("modelIdentifier");
-        }
+            modelIdentifier = (string)coSimulation.Attribute("modelIdentifier")
+        };
 
         var variables = new List<ScalarVariable>();
 
+        string typeNames = string.Join("|", Enum.GetNames(typeof(VariableType)));
+
         foreach (var e in root.Element("ModelVariables").Elements("ScalarVariable"))
         {
-            var v = new ScalarVariable
+            var typeElement = e.XPathSelectElement(typeNames);
+
+            ScalarVariable v = new()
             {
                 name = (string)e.Attribute("name"),
                 description = (string)e.Attribute("description"),
@@ -115,34 +115,11 @@ public static class FMUImporter
                 variability = (string)e.Attribute("variability"),
                 initial = (string)e.Attribute("initial"),
                 valueReference = (uint)e.Attribute("valueReference"),
+                type = (VariableType)Enum.Parse(typeof(VariableType), e.Name.ToString(), true),
+                start = (string)typeElement.Attribute("start")
             };
 
             variables.Add(v);
-
-            foreach (var el in e.Elements("Real"))
-            {
-                v.type = VariableType.Real;
-                v.start = (string)el.Attribute("start");
-            }
-
-            foreach (var el in e.Elements("Integer"))
-            {
-                v.type = VariableType.Integer;
-                v.start = (string)el.Attribute("start");
-            }
-
-            foreach (var el in e.Elements("Boolean"))
-            {
-                v.type = VariableType.Boolean;
-                v.start = (string)el.Attribute("start");
-            }
-
-            foreach (var el in e.Elements("String"))
-            {
-                v.type = VariableType.String;
-                v.start = (string)el.Attribute("start");
-            }
-
         }
 
         modelDescription.modelVariables = variables.ToArray();
@@ -179,13 +156,12 @@ public static class FMUImporter
         modelDescription.instantiationToken = (string)root.Attribute("instantiationToken");
         modelDescription.modelName = (string)root.Attribute("modelName");
 
-        foreach (var e in root.Elements("CoSimulation"))
+        var coSimulation = root.Element("CoSimulation") ?? throw new FMUImportException("The FMU does not support Co-Simulation.");
+
+        modelDescription.coSimulation = new()
         {
-            modelDescription.coSimulation = new()
-            {
-                modelIdentifier = (string)e.Attribute("modelIdentifier")
-            };
-        }
+            modelIdentifier = (string)coSimulation.Attribute("modelIdentifier")
+        };
 
         var variables = new List<ScalarVariable>();
 
