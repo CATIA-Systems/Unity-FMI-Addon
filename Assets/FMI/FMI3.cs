@@ -221,8 +221,8 @@ namespace FMI3 {
 
     public class FMU : FMI.FMU, IDisposable
     {
-        const int fmi3True = 1;
-        const int fmi3False = 0;
+        // const fmi3Boolean fmi3True = true;
+        // const fmi3Boolean fmi3False = false;
 
         // IntPtr dll;
         private fmi3Instance instance;
@@ -355,21 +355,47 @@ namespace FMI3 {
                 startTime,
                 stopTime.HasValue,
                 stopTime ?? 0.0));
+
+            if (LogFMICalls)
+            {
+                Debug.Log("fmi3EnterInitializationMode(" +
+                    "toleranceDefined=" + tolerance.HasValue +
+                    ", tolerance=" + (tolerance ?? 0.0) +
+                    ", startTime=" + startTime +
+                    ", stopTimeDefined=" + stopTime.HasValue +
+                    ", stopTime=" + (stopTime ?? 0.0) +
+                    ")");
+            }
         }
 
         public void ExitInitializationMode()
         {
             Call(fmi3ExitInitializationMode(instance));
+
+            if (LogFMICalls)
+            {
+                Debug.Log("fmi3ExitInitializationMode()");
+            }
         }
 
         public void Terminate()
         {
             Call(fmi3Terminate(instance));
+
+            if (LogFMICalls)
+            {
+                Debug.Log("fmi3Terminate()");
+            }
         }
 
         public void Reset()
         {
             Call(fmi3Reset(instance));
+
+            if (LogFMICalls)
+            {
+                Debug.Log("fmi3Reset()");
+            }
         }
 
         public void DoStep(double currentCommunicationPoint,
@@ -391,20 +417,44 @@ namespace FMI3 {
                 ref earlyReturn,
                 ref lastSuccessfulTime
             ));
+
+            if (LogFMICalls)
+            {
+                Debug.Log("fmi3DoStep(" +
+                    "currentCommunicationPoint=" + currentCommunicationPoint +
+                    ", communicationStepSize=" + communicationStepSize +
+                    ", noSetFMUStatePriorToCurrentPoint=" + noSetFMUStatePriorToCurrentPoint +
+                    ")");
+            }
         }
 
-        public void GetFloat64(uint vr, double[] values)
+        public void GetFloat64(fmi3ValueReference[] valueReferences, double[] values)
         {
-            fmi3ValueReference[] vrs = { vr };
-            // fmi3Float64[] values = { 0.0 };
-            Call(fmi3GetFloat64(instance, vrs, 1, values, (ulong)values.Length));
-            // return values[0];
+            Call(fmi3GetFloat64(instance, valueReferences, 1, values, (ulong)values.Length));
+
+            if (LogFMICalls)
+            {
+                Debug.Log("fmi3GetFloat64(" +
+                    "valueReferences=[" + string.Join(", ", valueReferences) + "]" +
+                    ", values=[" + string.Join(", ", values) + "]" +
+                    ")");
+            }
+        }
+
+        public Vector3 GetVector3(string name)
+        {
+            double[] values = new double[3];
+            GetFloat64(name, values);
+            return new Vector3(
+                (float)values[0],
+                (float)values[1],
+                (float)values[2]
+            );
         }
 
         public void GetFloat64(string name, double[] values)
         {
-            var vr = valueReferences[name];
-            GetFloat64(vr, values);
+            GetFloat64(new fmi3ValueReference[] { valueReferences[name] }, values);
         }
 
         public void GetInt32(uint vr, int[] values)

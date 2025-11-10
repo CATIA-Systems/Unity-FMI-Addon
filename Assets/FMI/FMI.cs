@@ -31,7 +31,7 @@ namespace FMI
         protected IntPtr dll;
 
         protected TDelegate getFunc<TDelegate>(string fname) where TDelegate : class
-		{
+        {
 #if UNITY_STANDALONE_WIN
             IntPtr p = GetProcAddress(dll, fname);
 #else
@@ -39,18 +39,20 @@ namespace FMI
 #endif
 
             if (p == IntPtr.Zero)
-			{
-				throw new Exception("Could not get function address for " + fname);
-			}
+            {
+                throw new Exception("Could not get function address for " + fname);
+            }
 
-			Delegate function = Marshal.GetDelegateForFunctionPointer(p, typeof(TDelegate));
+            Delegate function = Marshal.GetDelegateForFunctionPointer(p, typeof(TDelegate));
 
-			// Ideally, we'd just make the constraint on TDelegate be
-			// System.Delegate, but compiler error CS0702 (constrained can't be System.Delegate)
-			// prevents that. So we make the constraint system.object and do the cast from object-->TDelegate.
-			object o = function;
+            // Ideally, we'd just make the constraint on TDelegate be
+            // System.Delegate, but compiler error CS0702 (constrained can't be System.Delegate)
+            // prevents that. So we make the constraint system.object and do the cast from object-->TDelegate.
+            object o = function;
 
-			return (TDelegate)o;
-		}
+            return (TDelegate)o;
+        }
+        
+        public bool LogFMICalls = false;
     }
 }
