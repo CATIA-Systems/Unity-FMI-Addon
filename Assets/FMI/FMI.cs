@@ -40,7 +40,7 @@ namespace FMI
 
             if (p == IntPtr.Zero)
 			{
-				return null;
+				throw new Exception("Could not get function address for " + fname);
 			}
 
 			Delegate function = Marshal.GetDelegateForFunctionPointer(p, typeof(TDelegate));
