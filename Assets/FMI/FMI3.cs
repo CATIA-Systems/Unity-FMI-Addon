@@ -333,11 +333,6 @@ namespace FMI3 {
             return valueReferences[variable];
         }
 
-        private void AssertStatus()
-        {
-
-        }
-
         private void Call(fmi3Status status)
         {
             if (status != fmi3Status.fmi3OK)
@@ -441,15 +436,44 @@ namespace FMI3 {
             }
         }
 
-        public Vector3 GetVector3(string name)
+        public T GetValue<T>(string name)
         {
-            double[] values = new double[3];
-            GetFloat64(name, values);
-            return new Vector3(
-                (float)values[0],
-                (float)values[1],
-                (float)values[2]
-            );
+            if (typeof(T) == typeof(float))
+            {
+                double[] values = new double[1];
+                GetFloat64(name, values);
+                return (T)(object)(float)values[0];
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                int[] values = new int[1];
+                GetInt32(name, values);
+                return (T)(object)values[0];
+            }
+            else if (typeof(T) == typeof(Vector3))
+            {
+                double[] values = new double[3];
+                GetFloat64(name, values);
+                return (T)(object)new Vector3(
+                    (float)values[0],
+                    (float)values[1],
+                    (float)values[2]
+                );
+            }
+            else if (typeof(T) == typeof(Quaternion))
+            {
+                double[] values = new double[3];
+                GetFloat64(name, values);
+                return (T)(object)Quaternion.Euler(
+                    (float)values[0],
+                    (float)values[1],
+                    (float)values[2]
+                );
+            }
+            else
+            {
+                throw new Exception("Unsupported type in GetVariable<" + typeof(T) + "> for variable " + name);
+            }
         }
 
         public void GetFloat64(string name, double[] values)
@@ -491,6 +515,24 @@ namespace FMI3 {
         {
             var vr = valueReferences[name];
             SetInt32(vr, values);
+        }
+
+        public void SetValue<T>(string name, T value)
+        {
+            var vr = valueReferences[name];
+
+            if (typeof(T) == typeof(float))
+            {
+                SetFloat64(vr, new double[] { (float)(object)value });
+            }
+            else if (typeof(T) == typeof(int))
+            {
+                SetInt32(name, new int[] { (int)(object)value });
+            }
+            else
+            {
+                throw new Exception("Unsupported type in SetValue<" + typeof(T) + ">");
+            }
         }
 
         // public int GetInteger(uint vr)
